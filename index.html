@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>2026 瀨戶內漫旅 - 智慧手冊</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f5f5f4; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; color: #1e293b; overflow-x: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .tab-active { background-color: #0f766e !important; color: white !important; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3) !important; }
+        .day-active { background-color: #0f766e !important; color: white !important; transform: scale(1.05); }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        #trip-app-root button { border: none; outline: none; cursor: pointer; transition: all 0.2s ease; }
+
+        /* 照片預覽遮罩 */
+        #photo-overlay { background-color: rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body>
+
+<div id="trip-app-root" class="max-w-[480px] mx-auto min-h-screen flex flex-col relative bg-stone-50 shadow-2xl pb-32">
+    <!-- Header -->
+    <header class="bg-[#0f766e] text-white pt-10 pb-8 px-6 shadow-xl sticky top-0 z-[100] rounded-b-[2.5rem]">
+        <div class="flex justify-between items-center">
+            <div onclick="openTripTitleModal()" class="cursor-pointer">
+                <div class="flex items-center gap-1">
+                    <h1 id="ui-trip-title" class="text-xl font-black m-0 p-0 leading-tight">2026 瀨戶內</h1>
+                    <span id="edit-indicator-header" class="hidden text-amber-400">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    </span>
+                </div>
+                <p id="ui-trip-subtitle" class="text-[#5eead4] text-[9px] font-black uppercase tracking-[0.2em] m-0 mt-1 opacity-80 italic">Digital Planner</p>
+            </div>
+            <div class="flex items-center gap-8">
+                <div class="text-right shrink-0 border-r border-white/20 pr-4">
+                    <span class="text-[9px] opacity-60 block font-bold uppercase tracking-widest leading-none mb-0.5">Total</span>
+                    <span id="total-expense-ui" class="text-lg font-black tracking-tighter italic font-mono leading-none">¥0</span>
+                </div>
+                <!-- 修正：toggleEditMode 函式名稱對齊 -->
+                <button onclick="toggleEditMode()" id="edit-btn-ui" class="bg-white/10 text-white p-3 rounded-2xl transition-all shadow-md active:scale-90">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="px-6 -mt-6 sticky top-[100px] z-[90]">
+        <div class="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-xl border border-stone-200 p-1 flex gap-1">
+            <button onclick="switchTab('itinerary')" id="tab-itinerary" class="flex-1 py-4 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all tab-active">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                <span class="text-[10px] font-black uppercase">行程</span>
+            </button>
+            <button onclick="switchTab('wallet')" id="tab-wallet" class="flex-1 py-4 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all text-stone-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4Z"/></svg>
+                <span class="text-[10px] font-black uppercase">帳本</span>
+            </button>
+            <button onclick="switchTab('album')" id="tab-album" class="flex-1 py-4 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all text-stone-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                <span class="text-[10px] font-black uppercase">回憶</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="p-6 mt-4 flex-1">
+        <div id="day-selector" class="flex gap-3 overflow-x-auto no-scrollbar mb-8 py-2 px-1"></div>
+        <div id="content-itinerary" class="fade-in"></div>
+        <div id="content-wallet" class="hidden fade-in"></div>
+        <div id="content-album" class="hidden fade-in"></div>
+    </main>
+
+    <!-- Modal Layer -->
+    <div id="modal-layer" class="fixed inset-0 bg-stone-900/70 backdrop-blur-md z-[1000] hidden items-end sm:items-center justify-center p-4"></div>
+
+    <!-- Photo Preview Overlay -->
+    <div id="photo-overlay" class="fixed inset-0 z-[2000] hidden flex-col items-center justify-center p-4" onclick="closePhotoPreview()">
+        <button class="absolute top-10 right-6 text-white bg-white/20 p-3 rounded-full">✕</button>
+        <img id="large-photo-img" src="" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain">
+        <p class="text-white/50 text-[10px] mt-6 uppercase tracking-[0.3em] font-bold">點擊任何地方關閉</p>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[110] bg-white/90 backdrop-blur shadow-2xl rounded-full px-8 py-4 border border-stone-100 flex items-center gap-6 w-max">
+        <button onclick="resetApp()" class="text-stone-300 hover:text-rose-500 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
+        <div class="h-4 w-[1px] bg-stone-100"></div>
+        <button onclick="openCurrentMap()" class="text-[#0f766e] font-black text-xs flex items-center gap-2 whitespace-nowrap italic tracking-tighter">啟動導航 GUIDE</button>
+        <div class="h-4 w-[1px] bg-stone-100"></div>
+        <button onclick="downloadBackup()" class="text-[#0f766e]"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></button>
+    </div>
+</div>
+
+<script>
+    // --- 1. 核心行程數據 ---
+    const initialData = [
+        { day: 1, date: "2/20 (五)", title: "抵達米子・皆生溫泉", summary: "虎航 IT724 抵達米子機場，展開山陰之旅。", note: "飯店：皆生つるや (+81 859-22-6181)。第一晚換浴衣泡湯讓女兒適應氣溫。", activities: [
+            { id: 11, time: "13:25", title: "虎航 IT724 啟程", icon: "plane" },
+            { id: 12, time: "16:50", title: "抵達米子機場", desc: "行李領取與接駁", icon: "mapPin" },
+            { id: 13, time: "18:00", title: "入住：皆生つるや", map: "https://maps.app.goo.gl/HL6TMbXPX75nbRd77?g_st=ipc", icon: "hotel" }
+        ]},
+        { day: 2, date: "2/21 (六)", title: "出雲聖地・螃蟹自由", summary: "租車前往結緣之地，下午大啖紅楚蟹。", note: "必買：紅楚蟹蟹腳 (2000円)，市場直接吃。推薦拍女兒與鬼太郎大街。", activities: [
+            { id: 21, time: "09:30", title: "租車領車", map: "https://maps.app.goo.gl/7pNNzW6pxhtHiGRc8?g_st=ipc", icon: "car" },
+            { id: 22, time: "11:30", title: "出雲大社參拜", icon: "camera" },
+            { id: 23, time: "15:00", title: "境港螃蟹市場", desc: "2000日幣紅楚蟹直接吃", icon: "utensils" },
+            { id: 24, time: "18:00", title: "宿：Route Inn Yonago", map: "https://maps.app.goo.gl/6oxhpfRKykigVpXk8?g_st=ipc", icon: "hotel" }
+        ]},
+        { day: 3, date: "2/22 (日)", title: "跨縣移動・路面電車", summary: "穿越長廊，岡山路面電車體驗。", note: "吉備津神社長廊平坦友善。體驗路面電車 2 站。務必 20:00 前還車。", activities: [
+            { id: 31, time: "09:00", title: "出發往岡山", icon: "car" },
+            { id: 32, time: "11:00", title: "吉備津神社", desc: "400m 木造長廊散策", icon: "camera" },
+            { id: 33, time: "13:00", title: "路面電車體驗", map: "https://maps.app.goo.gl/dtcqdDGHajfdVcBH7?g_st=ipc", icon: "train" },
+            { id: 34, time: "17:30", title: "宿：GRAND BASE 倉敷", map: "https://maps.app.goo.gl/QKQgAkGAWzdZojGs8?g_st=ipc", icon: "hotel" },
+            { id: 35, time: "19:30", title: "倉敷還車點", map: "https://maps.app.goo.gl/qTT43Uvgk9j6RzCj9?g_st=ipc", icon: "car" }
+        ]},
+        { day: 4, date: "2/23 (一)", title: "尾道一日・山海慢遊", summary: "坡道尋貓，搭渡輪喝汽水。", note: "重點任務：藤井製帽買帽子。建議帶背帶避免累到女兒。", activities: [
+            { id: 41, time: "10:30", title: "尾道巡禮", desc: "纜車、眺望、貓之細道", icon: "camera" },
+            { id: 42, time: "14:30", title: "渡船往向島", desc: "懷舊汽水與啤酒體驗", icon: "camera" }
+        ]},
+        { day: 5, date: "2/24 (二)", title: "倉敷美觀・最後採買", summary: "沉浸白壁美景慢遊，文具控天堂。", note: "美觀地區可餵魚。mt紙膠帶、Outlet 最後補貨。", activities: [
+            { id: 51, time: "10:00", title: "倉敷美觀散策", map: "https://maps.app.goo.gl/xbZs9cdQhkL55Mxy6?g_st=ipc", icon: "camera" },
+            { id: 52, time: "15:00", title: "三井 Outlet 補貨", icon: "shoppingBag" }
+        ]},
+        { day: 6, date: "2/25 (三)", title: "最終散策・平安返台", summary: "帶著回憶，從岡山機場平安返台。", note: "13:30 抵達機場。記得幫女兒穿暖氣溫差大。", activities: [
+            { id: 61, time: "12:30", title: "前往機場", icon: "car" },
+            { id: 62, time: "15:25", title: "IT215 返台", icon: "plane" }
+        ]}
+    ];
+
+    // --- 2. 狀態管理 ---
+    let state = {
+        tab: 'itinerary',
+        day: 1,
+        edit: false,
+        tripTitle: localStorage.getItem('trip_v23_title') || "2026 瀨戶內",
+        tripSubtitle: localStorage.getItem('trip_v23_subtitle') || "Travel Flow",
+        itinerary: JSON.parse(localStorage.getItem('trip_v23_data')) || initialData,
+        expenses: JSON.parse(localStorage.getItem('trip_v23_exp')) || [],
+        photos: JSON.parse(localStorage.getItem('trip_v23_pic')) || {}
+    };
+
+    // --- 3. 圖示庫 ---
+    const svgs = {
+        plane: '<path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+        mapPin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+        hotel: '<path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/><path d="M12 2v20"/><path d="M9 16v2"/><path d="M15 16v2"/>',
+        car: '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
+        camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+        utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+        train: '<rect width="16" height="16" x="4" y="3" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><circle cx="8" cy="15" r="1"/><circle cx="16" cy="15" r="1"/>',
+        shoppingBag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+        edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>'
+    };
+
+    function icon(name, size=20) {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">${svgs[name] || ""}</svg>`;
+    }
+
+    // --- 4. 渲染邏輯 ---
+    function render() {
+        document.getElementById('ui-trip-title').innerText = state.tripTitle;
+        document.getElementById('ui-trip-subtitle').innerText = state.tripSubtitle;
+        
+        const total = state.expenses.reduce((s, e) => s + Number(e.amount), 0);
+        document.getElementById('total-expense-ui').innerText = `¥${total.toLocaleString()}`;
+        
+        const eb = document.getElementById('edit-btn-ui');
+        eb.className = `p-3 rounded-2xl transition-all shadow-md active:scale-90 ${state.edit ? 'bg-amber-500 text-white animate-pulse' : 'bg-white/10 text-white'}`;
+        document.getElementById('edit-indicator-header').className = state.edit ? 'inline text-amber-400 ml-1' : 'hidden';
+
+        ['itinerary', 'wallet', 'album'].forEach(t => {
+            const btn = document.getElementById(`tab-${t}`);
+            const sec = document.getElementById(`content-${t}`);
+            if (state.tab === t) {
+                btn.className = "flex-1 py-4 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all tab-active";
+                sec.classList.remove('hidden');
+                if (t === 'itinerary') renderItinerary();
+                if (t === 'wallet') renderWallet();
+                if (t === 'album') renderAlbum();
+            } else {
+                btn.className = "flex-1 py-4 flex flex-col items-center justify-center gap-1 rounded-2xl transition-all text-stone-400";
+                sec.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('day-selector').innerHTML = state.itinerary.map(d => `
+            <button onclick="setDay(${d.day})" class="flex-shrink-0 w-12 h-14 rounded-2xl flex flex-col items-center justify-center transition-all bg-white border border-stone-200 text-stone-300 ${state.day === d.day ? 'day-active shadow-lg' : ''}">
+                <span class="text-[10px] font-black uppercase">D${d.day}</span>
+                <span class="text-sm font-black">${d.date.split(' ')[0]}</span>
+            </button>
+        `).join('');
+    }
+
+    function renderItinerary() {
+        const d = state.itinerary.find(x => x.day === state.day);
+        document.getElementById('content-itinerary').innerHTML = `
+            <div class="mb-8 bg-white p-6 rounded-[2.5rem] card-shadow border border-teal-50 relative group">
+                ${state.edit ? `<button onclick="openEditDayHeader(${d.day})" class="absolute top-4 right-4 p-2 text-amber-500">${icon('edit', 18)}</button>` : ''}
+                <h2 class="text-2xl font-black text-teal-900 leading-tight italic underline decoration-teal-200">${d.title}</h2>
+                <p class="text-stone-500 text-xs mt-3 leading-relaxed font-medium">${d.summary}</p>
+            </div>
+            <div class="space-y-6 relative pl-2">
+                <div class="absolute left-8 top-6 bottom-6 w-px bg-stone-200"></div>
+                ${d.activities.map(act => `
+                    <div class="flex gap-5 relative group">
+                        <div class="w-12 h-12 rounded-2xl bg-white border-2 border-teal-700 flex items-center justify-center text-teal-800 z-10 shadow-sm transition-transform active:scale-90">${icon(act.icon)}</div>
+                        <div class="flex-1 bg-white rounded-[2rem] p-5 card-shadow border border-transparent hover:border-teal-100 transition-all relative">
+                            ${state.edit ? `
+                                <div class="absolute -top-2 -right-2 flex gap-1">
+                                    <button onclick="openEditAct(${d.day}, ${act.id})" class="bg-amber-500 text-white p-1.5 rounded-full shadow-lg border-2 border-white">${icon('edit', 14)}</button>
+                                    <button onclick="delAct(${d.day}, ${act.id})" class="bg-rose-500 text-white p-1.5 rounded-full shadow-lg border-2 border-white"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg></button>
+                                </div>
+                            ` : ''}
+                            <span class="text-[9px] font-black text-teal-700 bg-teal-50 px-2 py-0.5 rounded tracking-widest uppercase italic">${act.time}</span>
+                            <h4 class="font-bold text-stone-800 text-base mt-1 tracking-tight">${act.title}</h4>
+                            ${act.desc ? `<p class="text-[11px] text-stone-500 mt-1 leading-relaxed">${act.desc}</p>` : ''}
+                            ${act.map ? `<a href="${act.map}" target="_blank" class="mt-4 inline-flex items-center gap-2 py-2 px-4 bg-stone-50 rounded-xl text-[10px] font-bold text-teal-800 border border-stone-100 font-black italic uppercase tracking-tighter">開啟導航</a>` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+                ${state.edit ? `<button onclick="addNewAct(${d.day})" class="w-full py-5 border-2 border-dashed border-stone-200 rounded-[2rem] text-stone-300 font-black text-xs hover:text-teal-700 uppercase tracking-widest">+ Add Event</button>` : ''}
+            </div>
+            <div class="mt-12 p-8 bg-teal-950 text-teal-50 rounded-[3.5rem] shadow-2xl relative overflow-hidden">
+               <div class="flex justify-between items-center mb-4">
+                 <div class="flex items-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] text-teal-400">媽咪策略筆記</div>
+                 ${state.edit ? `<button onclick="openEditDayHeader(${d.day})" class="text-amber-400">${icon('edit', 14)}</button>` : ''}
+               </div>
+               <p class="text-sm leading-relaxed opacity-90 italic font-medium">「${d.note}」</p>
+            </div>
+        `;
+    }
+
+    function renderWallet() {
+        const items = state.expenses.filter(x => x.day === state.day);
+        document.getElementById('content-wallet').innerHTML = `
+            <div class="bg-teal-900 rounded-[2.5rem] p-8 text-white mb-8 shadow-2xl text-center relative overflow-hidden">
+                <h3 class="font-bold text-xs tracking-widest uppercase text-teal-300 mb-1">今日支出概況</h3>
+                <div class="text-4xl font-black font-mono tracking-tighter italic">¥${items.reduce((s,i)=>s+Number(i.amount),0).toLocaleString()}</div>
+                <button onclick="openExpenseModal()" class="mt-6 bg-white text-teal-900 w-full py-4 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all">+ 紀錄消費</button>
+            </div>
+            <div class="space-y-4 px-1">
+                ${items.map(e => `
+                    <div class="bg-white p-5 rounded-[2rem] flex items-center justify-between shadow-sm border border-stone-50 animate-in slide-in-from-bottom duration-300">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-700 font-bold text-xs uppercase">${e.category.charAt(0)}</div>
+                            <div>
+                                <p class="font-bold text-stone-800 text-sm leading-none">${e.item}</p>
+                                <div class="flex gap-2 mt-1.5">
+                                    <span class="text-[9px] text-teal-600 font-black uppercase tracking-widest">${e.payer || '公費'}</span>
+                                    <span class="text-[9px] text-stone-300 font-bold uppercase tracking-widest">${e.category}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-mono font-black text-teal-900 text-base">¥${Number(e.amount).toLocaleString()}</span>
+                            <button onclick="delExpenseItem(${e.id})" class="text-stone-200 hover:text-rose-500 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+                        </div>
+                    </div>
+                `).join('')}
+                ${items.length === 0 ? `<div class="text-center py-24 text-stone-300 italic text-sm">今日尚未記帳</div>` : ''}
+            </div>
+        `;
+    }
+
+    function renderAlbum() {
+        const dayPhotos = state.photos[state.day] || [];
+        document.getElementById('content-album').innerHTML = `
+            <div class="flex justify-between items-center mb-6 px-2">
+                <h3 class="font-black text-teal-900 text-lg tracking-tight">影像回憶</h3>
+                <label class="bg-stone-900 text-white px-5 py-2.5 rounded-2xl text-[10px] font-black cursor-pointer shadow-lg active:scale-90 transition-all">
+                    上傳照片 <input type="file" accept="image/*" class="hidden" onchange="uploadPhoto(event)">
+                </label>
+            </div>
+            <div class="grid grid-cols-2 gap-4 px-1">
+                ${dayPhotos.map((src, i) => `
+                    <div class="relative group aspect-[3/4] rounded-[2rem] overflow-hidden shadow-lg border-2 border-white cursor-zoom-in" onclick="openPhotoPreview('${src}')">
+                        <img src="${src}" class="w-full h-full object-cover">
+                        <button onclick="event.stopPropagation(); delPic(${i})" class="absolute top-3 right-3 bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                    </div>
+                `).join('')}
+                ${dayPhotos.length === 0 ? `<div class="col-span-2 text-center py-24 bg-white rounded-[3rem] text-stone-300 text-sm italic border-2 border-dashed border-stone-200">留下感動瞬間</div>` : ''}
+            </div>
+        `;
+    }
+
+    // --- 5. 互動功能 ---
+    window.switchTab = (t) => { state.tab = t; render(); };
+    window.setDay = (d) => { state.day = d; render(); };
+    window.toggleEditMode = () => { state.edit = !state.edit; render(); };
+
+    const modal = document.getElementById('modal-layer');
+    const showModal = (html) => { modal.innerHTML = html; modal.classList.remove('hidden'); modal.classList.add('flex'); };
+    window.closeModal = () => { modal.classList.add('hidden'); modal.classList.remove('flex'); };
+
+    // 大圖預覽
+    window.openPhotoPreview = (src) => {
+        document.getElementById('large-photo-img').src = src;
+        document.getElementById('photo-overlay').classList.remove('hidden');
+        document.getElementById('photo-overlay').classList.add('flex');
+    };
+    window.closePhotoPreview = () => {
+        document.getElementById('photo-overlay').classList.add('hidden');
+        document.getElementById('photo-overlay').classList.remove('flex');
+    };
+
+    // 頂部標題編輯
+    window.openTripTitleModal = () => {
+        if (!state.edit) return;
+        showModal(`
+            <div class="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom">
+                <h3 class="text-xl font-black mb-6 text-center text-stone-900">編輯手冊標題</h3>
+                <input type="text" id="m-trip-title" value="${state.tripTitle}" placeholder="主標題" class="w-full bg-stone-100 p-4 rounded-2xl mb-4 font-black outline-none border border-stone-100">
+                <input type="text" id="m-trip-subtitle" value="${state.tripSubtitle}" placeholder="副標題" class="w-full bg-stone-100 p-4 rounded-2xl mb-6 text-sm font-bold outline-none border border-stone-100">
+                <button onclick="saveTripHeader()" class="w-full bg-teal-800 text-white py-4 rounded-[2rem] font-black active:scale-95 transition-all">確認儲存</button>
+            </div>
+        `);
+    }
+
+    window.openExpenseModal = () => {
+        showModal(`
+            <div class="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+                <div class="flex justify-between items-center mb-8"><h3 class="text-xl font-black text-stone-900 italic underline decoration-amber-200">New Expense</h3><button onclick="closeModal()" class="text-stone-300 text-2xl">✕</button></div>
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">付款人</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setModalPayer('公費', this)" class="modal-payer-btn py-2.5 rounded-xl border border-stone-200 text-xs font-bold bg-teal-50 text-teal-800 border-teal-200">公費</button>
+                            <button onclick="setModalPayer('老公', this)" class="modal-payer-btn py-2.5 rounded-xl border border-stone-200 text-xs font-bold">老公</button>
+                            <button onclick="setModalPayer('老婆', this)" class="modal-payer-btn py-2.5 rounded-xl border border-stone-200 text-xs font-bold">老婆</button>
+                            <input type="hidden" id="m-payer" value="公費">
+                        </div>
+                    </div>
+                    <input type="text" id="m-item" placeholder="品項名稱" class="w-full bg-stone-100 p-4 rounded-2xl outline-none font-bold text-stone-800 border border-stone-100">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" id="m-amount" placeholder="金額 (JPY)" class="w-full bg-stone-100 p-4 rounded-2xl outline-none font-black font-mono border border-stone-100">
+                        <select id="m-cat" class="w-full bg-stone-100 p-4 rounded-2xl outline-none font-bold text-stone-500 uppercase text-xs border border-stone-100">
+                            <option value="food">飲食</option><option value="transport">交通</option><option value="shopping">購物</option>
+                        </select>
+                    </div>
+                    <button onclick="saveExpense()" class="w-full bg-teal-800 text-white py-5 rounded-[2rem] font-black shadow-lg mt-4 active:scale-95 transition-all italic">確認存入</button>
+                    <button onclick="closeModal()" class="w-full py-2 text-stone-400 text-xs font-black uppercase text-center">Cancel</button>
+                </div>
+            </div>
+        `);
+    };
+
+    window.setModalPayer = (payer, btn) => {
+        document.getElementById('m-payer').value = payer;
+        document.querySelectorAll('.modal-payer-btn').forEach(b => b.className = "modal-payer-btn py-2.5 rounded-xl border border-stone-200 text-xs font-bold");
+        btn.className = "modal-payer-btn py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-800 font-bold text-xs";
+    };
+
+    window.openEditDayHeader = (id) => {
+        const d = state.itinerary.find(x => x.day === id);
+        showModal(`
+            <div class="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl">
+                <h3 class="text-xl font-black mb-6 text-center text-stone-900">編輯標題與策略</h3>
+                <input type="text" id="e-title" value="${d.title}" class="w-full bg-stone-100 p-4 rounded-2xl mb-4 font-black outline-none border border-stone-100">
+                <textarea id="e-note" class="w-full bg-stone-100 p-4 rounded-2xl mb-6 text-sm h-48 italic outline-none border border-stone-100 leading-relaxed">${d.note}</textarea>
+                <button onclick="saveDayMeta(${id})" id="save-day-btn" class="w-full bg-teal-800 text-white py-4 rounded-[2rem] font-black active:scale-95 transition-all">儲存變更</button>
+                <button onclick="closeModal()" class="w-full py-2 text-stone-400 text-xs font-bold mt-2">取消</button>
+            </div>
+        `);
+    };
+
+    window.openEditAct = (dayId, actId) => {
+        const day = state.itinerary.find(x => x.day === dayId);
+        const act = day.activities.find(a => a.id === actId);
+        showModal(`
+            <div class="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
+                <h3 class="text-xl font-black mb-6 text-center text-stone-900 tracking-tight italic underline decoration-amber-200 decoration-4">Edit Event</h3>
+                <div class="space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar pb-4 px-1">
+                    <div>
+                        <label class="text-[10px] font-bold text-stone-400 uppercase mb-1 block">活動名稱</label>
+                        <input type="text" id="e-act-title" value="${act.title}" class="w-full bg-stone-100 p-3 rounded-xl font-bold outline-none border border-stone-50">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-bold text-stone-400 uppercase mb-1 block">時間 (HH:mm)</label>
+                            <input type="text" id="e-act-time" value="${act.time}" class="w-full bg-stone-100 p-3 rounded-xl font-mono outline-none border border-stone-50">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-stone-400 uppercase mb-1 block">類型圖示</label>
+                            <select id="e-act-type" class="w-full bg-stone-100 p-3 rounded-xl font-bold text-sm outline-none border border-stone-50">
+                                <option value="plane" ${act.icon==='plane'?'selected':''}>航班</option>
+                                <option value="mapPin" ${act.icon==='mapPin'?'selected':''}>景點</option>
+                                <option value="car" ${act.icon==='car'?'selected':''}>交通</option>
+                                <option value="hotel" ${act.icon==='hotel'?'selected':''}>飯店</option>
+                                <option value="camera" ${act.icon==='camera'?'selected':''}>攝影</option>
+                                <option value="utensils" ${act.icon==='utensils'?'selected':''}>美食</option>
+                                <option value="shoppingBag" ${act.icon==='shoppingBag'?'selected':''}>購物</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-stone-400 uppercase mb-1 block">Google Maps 網址</label>
+                        <input type="text" id="e-act-map" value="${act.map || ''}" placeholder="請貼上分享連結" class="w-full bg-stone-100 p-3 rounded-xl text-[10px] outline-none border border-stone-50">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-stone-400 uppercase mb-1 block">描述</label>
+                        <textarea id="e-act-desc" class="w-full bg-stone-100 p-3 rounded-xl text-xs h-24 leading-relaxed outline-none border border-stone-50">${act.desc || ''}</textarea>
+                    </div>
+                </div>
+                <button id="save-act-btn" onclick="saveActivity(${dayId}, ${actId})" class="w-full bg-[#0f766e] text-white py-4 rounded-2xl font-black mt-4 active:scale-95 transition-all italic">確認儲存並排序</button>
+                <button onclick="closeModal()" class="w-full py-2 text-stone-400 text-xs font-bold text-center">取消</button>
+            </div>
+        `);
+    };
+
+    // --- 6. 資料處理實作 ---
+    window.saveTripHeader = () => {
+        state.tripTitle = document.getElementById('m-trip-title').value;
+        state.tripSubtitle = document.getElementById('m-trip-subtitle').value;
+        sync(); closeModal();
+    };
+
+    window.saveExpense = () => {
+        const item = document.getElementById('m-item').value;
+        const amount = document.getElementById('m-amount').value;
+        if (!item || !amount) return;
+        state.expenses.push({ id: Date.now(), day: state.day, item, amount, category: document.getElementById('m-cat').value, payer: document.getElementById('m-payer').value });
+        sync(); closeModal();
+    };
+
+    window.saveDayMeta = (id) => {
+        const d = state.itinerary.find(x => x.day === id);
+        d.title = document.getElementById('e-title').value;
+        d.note = document.getElementById('e-note').value;
+        sync(); closeModal();
+    };
+
+    window.saveActivity = (dayId, actId) => {
+        const btn = document.getElementById('save-act-btn');
+        btn.innerText = "排序中...";
+        const day = state.itinerary.find(x => x.day === dayId);
+        const act = day.activities.find(a => a.id === actId);
+        act.title = document.getElementById('e-act-title').value;
+        act.time = document.getElementById('e-act-time').value;
+        act.desc = document.getElementById('e-act-desc').value;
+        act.map = document.getElementById('e-act-map').value;
+        act.icon = document.getElementById('e-act-type').value;
+        
+        // 自動排序
+        day.activities.sort((a, b) => a.time.localeCompare(b.time));
+        
+        setTimeout(() => { sync(); closeModal(); }, 300);
+    };
+
+    window.addNewAct = (dayId) => {
+        const day = state.itinerary.find(x => x.day === dayId);
+        day.activities.push({ id: Date.now(), time: "12:00", title: "新行程項目", icon: "camera", desc: "" });
+        sync();
+    };
+
+    window.delAct = (dayId, actId) => {
+        if(!confirm('確定刪除？')) return;
+        const day = state.itinerary.find(x => x.day === dayId);
+        day.activities = day.activities.filter(a => a.id !== actId);
+        sync();
+    };
+
+    window.delExpenseItem = (id) => { state.expenses = state.expenses.filter(x => x.id !== id); sync(); };
+    window.delPic = (idx) => { state.photos[state.day].splice(idx, 1); sync(); };
+
+    window.uploadPhoto = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (!state.photos[state.day]) state.photos[state.day] = [];
+            state.photos[state.day].push(reader.result);
+            sync();
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.sync = () => {
+        localStorage.setItem('trip_v23_title', state.tripTitle);
+        localStorage.setItem('trip_v23_subtitle', state.tripSubtitle);
+        localStorage.setItem('trip_v23_data', JSON.stringify(state.itinerary));
+        localStorage.setItem('trip_v23_exp', JSON.stringify(state.expenses));
+        localStorage.setItem('trip_v23_pic', JSON.stringify(state.photos));
+        render();
+    };
+
+    window.openCurrentMap = () => {
+        const day = state.itinerary.find(x => x.day === state.day);
+        const m = day.activities.find(a => a.map)?.map;
+        if (m) window.open(m, '_blank'); else alert('本日尚無導航網址。');
+    };
+
+    window.resetApp = () => { if (confirm('確定重置並回復預設行程？')) { localStorage.clear(); location.reload(); } };
+    window.downloadBackup = () => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([JSON.stringify(state)], {type: 'application/json'}));
+        a.download = '2026_Trip_Backup.json'; a.click();
+    };
+
+    window.onload = render;
+</script>
+
+</body>
+</html>
